@@ -52,7 +52,7 @@ Protocon 是一个基于 TCP 的轻量协议。用于 ies-con-connector 后端�
 
 ### Time
 
-请求发送的时间戳。其值为从格林威治时间1970年01月01日00时00分00秒起至请求发送时的总秒数，即 Unix timestamp。
+请求发送的时间戳。其值为从格林威治时间 1970 年 01 月 01 日 00 时 00 分 00 秒起至请求发送时的总秒数，即 Unix timestamp。
 
 ### API Version
 
