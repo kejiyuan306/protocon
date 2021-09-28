@@ -76,3 +76,39 @@ Protocon 是一个基于 TCP 的轻量协议。用于 ies-con 后端与终端设
 编码为 UTF-8。
 Object 中的字段根据 Type 不同而不同。
 长度由 Length 指定。
+
+## Response
+
+响应由以下字段依序组成
+
+| Name                   | Type             | Bytes |
+| ---------------------- | ---------------- | ----- |
+| Interaction Identifier | unsigned integer | 2     |
+| Time                   | unsigned integer | 8     |
+| Status                 | bool             | 1     |
+| Length                 | unsigned integer | 4     |
+| Data                   | UTF-8 string     | -     |
+
+### Interaction Identifier
+
+交互标识符，应当与响应所对应请求的交互标识符保持一致。
+
+### Time
+
+响应发送的时间，为 Unix timestamp。
+
+### Status
+
+交互的状态，表示交互是否成功。
+如果成功则为 true，失败则为 false。
+他会被编码为一个字节，如果该字节中所有位均为零，则为 false，否则为 true。
+
+**注意**：成功和失败可能会导致 Data 中的字段产生变化，比如失败时 Data 可能包含错误信息。
+
+### Length
+
+指定 Data 的长度。
+
+### Data
+
+长度由 Length 指定。Data 中的字段（即响应所要返回的信息）由请求类型指定。此外，Data 还会受交互状态影响，例如：如果交互状态为成功，则 Data 中的信息可以为请求所要求的操作结束后的的设备状态；如果交互失败，则 Data 中的信息为错误产生的原因。
