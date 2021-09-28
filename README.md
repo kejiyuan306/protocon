@@ -69,7 +69,7 @@ Protocon 是一个基于 TCP 的轻量协议。用于 ies-con 后端与终端设
 
 ### Length
 
-指定 Data 的长度。
+指定 Data 的长度，即字节数量。
 上层应用应当从 TCP 流中读取 Length 个字节，并将这些字节解码为 Data。
 
 ### Data
