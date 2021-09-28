@@ -99,7 +99,7 @@ Object 中的字段根据 Type 不同而不同。
 
 ### Time
 
-响应发送的时间，为 Unix timestamp。
+响应发送的时间戳，为 Unix timestamp。
 
 ### Status
 
