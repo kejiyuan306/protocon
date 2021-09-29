@@ -89,7 +89,7 @@ Object 中的键值对根据 Type 不同而不同。
 | ------------------ | ---------------- | ----- |
 | Command Identifier | unsigned integer | 2     |
 | Time               | unsigned integer | 8     |
-| Status             | bool             | 1     |
+| Status             | unsigned integer | 1     |
 | Length             | unsigned integer | 4     |
 | Data               | UTF-8 string     | -     |
 
@@ -104,8 +104,9 @@ Object 中的键值对根据 Type 不同而不同。
 ### Status
 
 命令的状态，表示命令是否成功。
-如果成功则为 true，失败则为 false。
-他会被编码为一个字节，如果该字节中所有位均为零，则为 false，否则为 true。
+
+如果成功则为零，失败则为非零的错误码。
+对于不同的命令，错误码的取值可以有所不同，同一取值的错误码含义也可以有所不同。
 
 **注意**：成功和失败可能会导致 Data 中的键值对产生变化，比如失败时 Data 可能包含错误信息。
 
