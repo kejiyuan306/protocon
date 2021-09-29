@@ -25,6 +25,7 @@ Protocon 是一个基于 TCP 的轻量协议。用于 ies-con-connector 后端�
 | Name               | Type             | Bytes |
 | ------------------ | ---------------- | ----- |
 | Command Identifier | unsigned integer | 2     |
+| Gateway Identifier | unsigned integer | 8     |
 | Client Identifier  | unsigned integer | 8     |
 | Time               | unsigned integer | 8     |
 | API Version        | unsigned integer | 2     |
@@ -41,6 +42,15 @@ Protocon 是一个基于 TCP 的轻量协议。用于 ies-con-connector 后端�
 有两种特殊情况：服务端发起的请求与客户端发起的请求的命令标识符可以重复，上层应用需要区分处理自身发送的请求与接收到的请求的标识符；不同客户端的命令标识符也可以重复，服务端需要区分处理不同客户端的标识符。
 
 **注意**：如果多台设备经由同一个网关与平台交互，命令标识符应当由网关生成。
+
+### Gateway Identifier
+
+网关标识符，即为网关设备的客户端标识符，具体可参见后文。
+有效的网关标识符为**正数**，如果为零则为无网关，即直连设备。
+
+直连设备与平台交互时，网关标识符应当为零。
+非直连设备与平台交互式，网关标识符为其所属的网关的客户端标识符。
+网关设备可以认为是直连设备。
 
 ### Client Identifier
 
