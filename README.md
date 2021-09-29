@@ -26,7 +26,7 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 
 | Name               | Type             | Bytes |
 | ------------------ | ---------------- | ----- |
-| Command Identifier | unsigned integer | 2     |
+| Command Identifier | signed integer   | 2     |
 | Gateway Identifier | unsigned integer | 8     |
 | Client Identifier  | unsigned integer | 8     |
 | Time               | unsigned integer | 8     |
@@ -39,7 +39,10 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 
 该请求的命令标识符，用于与 Response 相对应。
 标识符由`主动方`生成。
-本协议规定生成的标识符应当递增，即任意一次请求的标识符皆为其前一次的标识符加一，上层应用如果并发处理请求则可使用原子量来实现。如果标识符自增后溢出，则重新从零开始。
+本协议规定命令标识符使用`原码`表示法，符号位用于识别请求与响应，正数表示请求，负数表示响应。
+生成的标识符的绝对值应当递增，即任意一次请求的标识符绝对值皆为其前一次的标识符加一。
+上层应用如果并发处理请求则可使用原子量来实现。
+如果标识符自增后溢出，则重新从零开始。
 
 有两种特殊情况：服务端发起的请求与客户端发起的请求的命令标识符可以重复，上层应用需要区分处理自身发送的请求与接收到的请求的标识符；不同客户端的命令标识符也可以重复，服务端需要区分处理不同客户端的标识符。
 
@@ -102,7 +105,7 @@ Object 中的键值对根据 Type 不同而不同。
 
 | Name               | Type             | Bytes |
 | ------------------ | ---------------- | ----- |
-| Command Identifier | unsigned integer | 2     |
+| Command Identifier | signed integer   | 2     |
 | Time               | unsigned integer | 8     |
 | Status             | unsigned integer | 1     |
 | Length             | unsigned integer | 4     |
@@ -110,7 +113,9 @@ Object 中的键值对根据 Type 不同而不同。
 
 ### Command Identifier
 
-命令标识符，应当与响应所对应请求的命令标识符保持一致。
+命令标识符，使用原码表示法，为负数，其绝对值应当与响应所对应请求的命令标识符保持一致。
+为负数，即响应的符号位为一，与请求的相反。
+原码表示法的绝对值相同，即其他位与请求的相同。
 
 ### Time
 
