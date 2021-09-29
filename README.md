@@ -1,6 +1,6 @@
 # Protocon
 
-Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector 后端与终端设备之间交互命令的编码规则。
+Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector 后端与终端设备之间交互的流程与编码规则等。
 
 后端为服务端，监听指定端口；终端设备为客户端，各个设备需要主动连接到服务端的指定端口。
 
