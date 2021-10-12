@@ -20,13 +20,23 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 其中，一次命令中的请求与响应都具有相同的命令标识符（Command Identifier）。
 上层应用可通过该标识符来确定请求与响应的对应关系，以此实现请求的并发处理。
 
+## 注册与登录
+
+客户端在连接到服务端后，首先应当发起一个特殊的命令，发送自身的客户端标识符作为登录。
+服务端需要验证该标识符是否合法，并将验证结果包含在返回的响应中。
+
+如果客户端为首次连接，则在登录前应当先发起注册命令，服务端返回的响应中会包含客户端标识符，客户端应当将改标识符持久化以用于登录。
+
+其交互流程与普通命令相同，仅仅是传输的字段有所不同。
+
 ## Request
 
-请求由以下字段依序组成
+普通请求由以下字段依序组成
 
 | Name               | Type             | Bytes |
 | ------------------ | ---------------- | ----- |
-| Command Identifier | signed integer   | 2     |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
 | Gateway Identifier | unsigned integer | 8     |
 | Client Identifier  | unsigned integer | 8     |
 | Time               | unsigned integer | 8     |
@@ -35,22 +45,35 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 | Length             | unsigned integer | 4     |
 | Data               | UTF-8 string     | -     |
 
+### Command Flag
+
+命令标记，用于区分普通命令与登录注册命令，对于一个命令区分请求和响应。
+
+最高位用于区分请求和响应。请求固定为零，响应固定为一。
+
+对于普通请求，应当为 0x00。其余情况见下表。
+
+| Command | Request | Response |
+| ------- | ------- | -------- |
+| Normal  | 0x00    | 0x80     |
+| Sign Up | 0x01    | 0x81     |
+| Sign In | 0x02    | 0x82     |
+
 ### Command Identifier
 
-该请求的命令标识符，用于与 Response 相对应。
-标识符由`主动方`生成。
-本协议规定命令标识符使用`原码`表示法，符号位用于识别请求与响应，正数表示请求，负数表示响应，不能为零。
-生成的标识符的绝对值应当递增，即任意一次请求的标识符绝对值皆为其前一次的标识符加一。
-上层应用如果并发处理请求则可使用原子量来实现。
-如果标识符自增后溢出，则重新从一开始。
+该请求的命令标识符，用于区分同时发送的多个请求。
 
-有两种特殊情况：服务端发起的请求与客户端发起的请求的命令标识符可以重复，上层应用需要区分处理自身发送的请求与接收到的请求的标识符；不同客户端的命令标识符也可以重复，服务端需要区分处理不同客户端的标识符。
+命令标识符由`主动方`生成。
+生成的命令标识符应当递增，即任意一次请求的标识符皆为其前一次的标识符加一。
+如果标识符自增后溢出，则重新从零开始。
 
-**注意**：如果多台设备经由同一个网关与平台交互，命令标识符应当由网关生成。
+有两种特殊情况：服务端发起的请求与客户端发起的请求的命令标识符可能重复，上层应用需要区分处理自身发送的请求与接收到的请求的标识符；不同客户端的命令标识符也可能重复，服务端需要区分处理不同客户端的标识符。
+
+**注意**：如果多台设备经由同一个网关与平台交互，为了设备注册时识别各个设备，命令标识符应当由网关生成。
 
 ### Gateway Identifier
 
-网关标识符，即为网关设备的客户端标识符，具体可参见后文。
+网关标识符，即为网关设备的客户端标识符，客户端标识符可参见后文。
 有效的网关标识符为**正数**，如果为零则为无网关，即直连设备。
 
 直连设备与平台交互时，网关标识符应当为零。
@@ -101,21 +124,24 @@ Object 中的键值对根据 Type 不同而不同。
 
 ## Response
 
-响应由以下字段依序组成
+普通响应由以下字段依序组成
 
 | Name               | Type             | Bytes |
 | ------------------ | ---------------- | ----- |
-| Command Identifier | signed integer   | 2     |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
 | Time               | unsigned integer | 8     |
 | Status             | unsigned integer | 1     |
 | Length             | unsigned integer | 4     |
 | Data               | UTF-8 string     | -     |
 
+### Command Flag
+
+命令标记，普通响应的命令标记应当为 0x80。
+
 ### Command Identifier
 
-命令标识符，使用原码表示法，为负数，其绝对值应当与响应所对应请求的命令标识符保持一致。
-为负数，即响应的符号位为一，与请求的相反。
-原码表示法的绝对值相同，即其他位与请求的相同。
+命令标识符，应当与响应所对应请求的命令标识符保持一致。
 
 ### Time
 
@@ -138,3 +164,96 @@ Object 中的键值对根据 Type 不同而不同。
 
 长度由 Length 指定。Data 中的键值对（即响应所要返回的信息）由命令类型指定。
 此外，Data 还会受命令状态影响，例如：如果命令状态为成功，则 Data 中的信息可以为请求所要求的操作结束后的的设备状态；如果命令失败，则 Data 中的信息通常为错误产生的原因以及与错误相关的其他信息。
+
+## Sign Up Request
+
+| Name               | Type             | Bytes |
+| ------------------ | ---------------- | ----- |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
+| Gateway Identifier | unsigned integer | 8     |
+
+### Command Flag
+
+命令标记，注册请求的标记应当为 0x01。
+
+### Command Identifier
+
+命令标识符的生成规则与普通命令相同。
+
+### Gateway Identifier
+
+网关设备的 Client Id。
+直连设备的网关标识符应当为零。
+
+## Sign Up Response
+
+| Name               | Type             | Bytes |
+| ------------------ | ---------------- | ----- |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
+| Client Identifier  | unsigned integer | 8     |
+| Status             | unsigned integer | 1     |
+
+### Command Flag
+
+命令标记，注册响应的标记应当为 0x81。
+
+### Command Identifier
+
+命令标识符与对应请求的相同。
+
+### Client Identifier
+
+服务端分配的唯一客户端标识符。
+
+### Status
+
+注册命令的状态，与普通命令使用统一的错误码。
+
+## Sign In Request
+
+| Name               | Type             | Bytes |
+| ------------------ | ---------------- | ----- |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
+| Gateway Identifier | unsigned integer | 8     |
+| Client Identifier  | unsigned integer | 8     |
+
+### Command Flag
+
+命令标记，同上。
+登录请求的标记应当为 0x02。
+
+### Command Identifier
+
+命令标识符的生成规则与普通命令相同。
+
+### Gateway Identifier
+
+网关设备的 Client Id。
+直连设备的网关标识符应当为零。
+
+### Client Identifier
+
+设备自身的 Client Id。
+
+## Sign In Response
+
+| Name               | Type             | Bytes |
+| ------------------ | ---------------- | ----- |
+| Command Flag       | unsigned integer | 1     |
+| Command Identifier | unsigned integer | 2     |
+| Status             | unsigned integer | 1     |
+
+### Command Flag
+
+命令标记，登录响应的标记应当为 0x82。
+
+### Command Identifier
+
+命令标识符与对应请求的相同。
+
+### Status
+
+登录命令的状态，与普通命令使用统一的错误码。
