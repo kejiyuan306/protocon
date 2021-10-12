@@ -55,7 +55,7 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 
 直连设备与平台交互时，网关标识符应当为零。
 非直连设备与平台交互时，网关标识符为其所属的网关的客户端标识符。
-网关设备可以认为是直连设备。
+特别的，网关设备的 Gateway Id 与 Client Id 相同，可以认为是非直连设备。
 
 ### Client Identifier
 
