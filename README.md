@@ -74,11 +74,10 @@ Protocon 是一个基于 TCP 的轻量协议。该协议规定 ies-con-connector
 ### Gateway Identifier
 
 网关标识符，即为网关设备的客户端标识符，客户端标识符可参见后文。
-有效的网关标识符为**正数**，如果为零则为无网关，即直连设备。
+有效的网关标识符为**正数**，如果为零则表示设备本身为网关设备。
 
-直连设备与平台交互时，网关标识符应当为零。
+网关设备与平台交互时，网关标识符应当为零。
 非直连设备与平台交互时，网关标识符为其所属的网关的客户端标识符。
-特别的，网关设备的 Gateway Id 应当为零，可以认为是直连设备。
 
 ### Client Identifier
 
@@ -198,7 +197,7 @@ Object 中的键值对根据 Type 不同而不同。
 ### Gateway Identifier
 
 网关设备的 Client Id。
-直连设备的网关标识符应当为零。
+网关设备的网关标识符应当为零。
 
 ## Sign Up Response
 
@@ -246,7 +245,7 @@ Object 中的键值对根据 Type 不同而不同。
 ### Gateway Identifier
 
 网关设备的 Client Id。
-直连设备的网关标识符应当为零。
+网关设备的网关标识符应当为零。
 
 ### Client Identifier
 
